@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,12 +49,8 @@ public class ProductService {
     public ProductDTO.ProductResponse updateProduct(String code, ProductDTO.UpdateProductRequest request) {
         Product product = findProductByCode(code);
 
-        if (request.getName() != null) {
-            product.setName(request.getName());
-        }
-        if (request.getPrice() != null) {
-            product.setPrice(request.getPrice());
-        }
+        Optional.ofNullable(request.getName()).ifPresent(product::setName);
+        Optional.ofNullable(request.getPrice()).ifPresent(product::setPrice);
 
         Product updated = productRepository.save(product);
         return mapToResponse(updated);
@@ -84,8 +81,7 @@ public class ProductService {
         Product product = findProductByCode(code);
 
         PackagingOption option = product.getPackagingOptions().stream()
-                .filter(o -> Objects.equals(o.getQuantity(), request.getQuantity()) &&
-                        o.getPackagePrice().compareTo(request.getPackagePrice()) == 0)
+                .filter(o -> isMatchingOption(o, request))
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("Option not found"));
 
@@ -97,6 +93,11 @@ public class ProductService {
         return productRepository.findById(code)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Product not found with code: " + code));
+    }
+
+    private boolean isMatchingOption(PackagingOption o, ProductDTO.PackagingOptionRequest req) {
+        return Objects.equals(o.getQuantity(), req.getQuantity()) &&
+                o.getPackagePrice().compareTo(req.getPackagePrice()) == 0;
     }
 
     private ProductDTO.ProductResponse mapToResponse(Product product) {

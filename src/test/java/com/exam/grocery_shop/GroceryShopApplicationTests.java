@@ -10,4 +10,9 @@ class GroceryShopApplicationTests {
 	void contextLoads() {
 	}
 
+	@Test
+	void mainMethod_ShouldRunSuccessfully() {
+		GroceryShopApplication.main(new String[] {});
+	}
+
 }
