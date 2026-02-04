@@ -1,16 +1,18 @@
 package com.exam.grocery_shop.controller;
 
 import com.exam.grocery_shop.dto.ProductDTO;
+import com.exam.grocery_shop.model.PackagingOption;
 import com.exam.grocery_shop.model.Product;
 import com.exam.grocery_shop.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 
@@ -29,7 +31,7 @@ public class ProductControllerIntegrationTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private tools.jackson.databind.ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
     @Autowired
     private ProductRepository productRepository;
@@ -145,6 +147,58 @@ public class ProductControllerIntegrationTest {
 
         mockMvc.perform(get("/api/products/TEST"))
                 .andExpect(status().isNotFound());
+
+    }
+
+    @Test
+    void addPackagingOption_ShouldAddOptionToProduct() throws Exception {
+        Product product = Product.builder()
+                .code("TEST")
+                .name("Test Product")
+                .price(new BigDecimal("10.00"))
+                .build();
+        productRepository.save(product);
+
+        ProductDTO.PackagingOptionRequest request = ProductDTO.PackagingOptionRequest.builder()
+                .quantity(5)
+                .packagePrice(new BigDecimal("25.00"))
+                .build();
+
+        mockMvc.perform(post("/api/products/TEST/packaging-options")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.packagingOptions", hasSize(1)))
+                .andExpect(jsonPath("$.packagingOptions[0].quantity").value(5))
+                .andExpect(jsonPath("$.packagingOptions[0].packagePrice").value(25.00));
+    }
+
+    @Test
+    void removePackagingOption_WhenExists_ShouldReturnNoContent() throws Exception {
+
+        Product product = Product.builder()
+                .code("TEST")
+                .name("Test Product")
+                .price(new BigDecimal("10.00"))
+                .build();
+
+        ProductDTO.PackagingOptionRequest request = ProductDTO.PackagingOptionRequest.builder()
+                .quantity(5)
+                .packagePrice(new BigDecimal("25.00"))
+                .build();
+
+        PackagingOption packagingOption = PackagingOption.builder()
+                        .quantity(5)
+                        .packagePrice(new BigDecimal("25.00"))
+                        .build();
+
+        product.addPackagingOption(packagingOption);
+        productRepository.save(product);
+
+        mockMvc.perform(delete("/api/products/TEST/packaging-options") // Removed trailing slash
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNoContent());
 
     }
 }

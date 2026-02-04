@@ -105,3 +105,25 @@ Content-Type: application/json
 ```http
 DELETE /api/products/{code}
 ```
+
+#### Add Packaging Option
+```http
+POST /api/products/{code}/packaging-options
+Content-Type: application/json
+
+{
+    "quantity": 2,
+    "packagePrice": 13.95
+}
+```
+
+#### Delete Packaging Option
+```http
+POST /api/products/{code}/packaging-options
+Content-Type: application/json
+
+{
+    "quantity": 2,
+    "packagePrice": 13.95
+}
+```

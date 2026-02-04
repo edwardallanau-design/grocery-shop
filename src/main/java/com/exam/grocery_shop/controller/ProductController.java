@@ -49,4 +49,20 @@ public class ProductController {
         productService.deleteProduct(code);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{code}/packaging-options")
+    public ResponseEntity<ProductDTO.ProductResponse> addPackagingOption(
+            @PathVariable String code,
+            @Valid @RequestBody ProductDTO.PackagingOptionRequest request) {
+        ProductDTO.ProductResponse response = productService.addPackagingOption(code, request);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/{code}/packaging-options")
+    public ResponseEntity<ProductDTO.ProductResponse> removePackagingOption(
+            @PathVariable String code,
+            @Valid @RequestBody ProductDTO.PackagingOptionRequest request) {
+        productService.removePackagingOption(code, request);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -2,6 +2,7 @@ package com.exam.grocery_shop.service;
 
 import com.exam.grocery_shop.dto.ProductDTO;
 import com.exam.grocery_shop.exception.ResourceNotFoundException;
+import com.exam.grocery_shop.model.PackagingOption;
 import com.exam.grocery_shop.model.Product;
 import com.exam.grocery_shop.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,6 +39,7 @@ public class ProductServiceTest {
                 .code("TEST")
                 .name("Test Product")
                 .price(new BigDecimal("10.00"))
+                .packagingOptions(new ArrayList<>())
                 .build();
     }
 
@@ -128,5 +130,59 @@ public class ProductServiceTest {
 
         verify(productRepository, times(1)).findById("TEST");
         verify(productRepository, times(1)).delete(testProduct);
+    }
+
+    @Test
+    void addPackagingOption_ShouldAddOptionAndReturnProduct() {
+        ProductDTO.PackagingOptionRequest request = ProductDTO.PackagingOptionRequest.builder()
+                .quantity(5)
+                .packagePrice(new BigDecimal("25.00"))
+                .build();
+
+        when(productRepository.findById("TEST")).thenReturn(Optional.of(testProduct));
+        when(productRepository.save(any(Product.class))).thenReturn(testProduct);
+
+        ProductDTO.ProductResponse response = productService.addPackagingOption("TEST", request);
+
+        assertNotNull(response);
+        verify(productRepository, times(1)).findById("TEST");
+        verify(productRepository, times(1)).save(any(Product.class));
+    }
+
+    @Test
+    void removePackagingOption_WhenOptionExists_ShouldRemoveOption() {
+        ProductDTO.PackagingOptionRequest request = ProductDTO.PackagingOptionRequest.builder()
+                .quantity(5)
+                .packagePrice(new BigDecimal("25.00"))
+                .build();
+
+        PackagingOption existingOption = PackagingOption.builder()
+                .quantity(5)
+                .packagePrice(new BigDecimal("25.00"))
+                .build();
+        testProduct.addPackagingOption(existingOption);
+
+        when(productRepository.findById("TEST")).thenReturn(Optional.of(testProduct));
+        when(productRepository.save(any(Product.class))).thenReturn(testProduct);
+
+        productService.removePackagingOption("TEST", request);
+
+        assertFalse(testProduct.getPackagingOptions().contains(existingOption));
+        verify(productRepository).save(testProduct);
+    }
+
+    @Test
+    void removePackagingOption_WhenOptionNotExists_ShouldThrowException() {
+
+        ProductDTO.PackagingOptionRequest request = ProductDTO.PackagingOptionRequest.builder()
+                .quantity(5)
+                .packagePrice(new BigDecimal("25.00"))
+                .build();
+
+        when(productRepository.findById("TEST")).thenReturn(Optional.of(testProduct));
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            productService.removePackagingOption("TEST", request);
+        });
     }
 }

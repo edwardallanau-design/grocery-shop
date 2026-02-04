@@ -2,6 +2,7 @@ package com.exam.grocery_shop.service;
 
 import com.exam.grocery_shop.dto.ProductDTO;
 import com.exam.grocery_shop.exception.ResourceNotFoundException;
+import com.exam.grocery_shop.model.PackagingOption;
 import com.exam.grocery_shop.model.Product;
 import com.exam.grocery_shop.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,12 +49,8 @@ public class ProductService {
     public ProductDTO.ProductResponse updateProduct(String code, ProductDTO.UpdateProductRequest request) {
         Product product = findProductByCode(code);
 
-        if (request.getName() != null) {
-            product.setName(request.getName());
-        }
-        if (request.getPrice() != null) {
-            product.setPrice(request.getPrice());
-        }
+        Optional.ofNullable(request.getName()).ifPresent(product::setName);
+        Optional.ofNullable(request.getPrice()).ifPresent(product::setPrice);
 
         Product updated = productRepository.save(product);
         return mapToResponse(updated);
@@ -63,18 +62,58 @@ public class ProductService {
         productRepository.delete(product);
     }
 
+    @Transactional
+    public ProductDTO.ProductResponse addPackagingOption(String code, ProductDTO.PackagingOptionRequest request) {
+        Product product = findProductByCode(code);
+
+        PackagingOption option = PackagingOption.builder()
+                .quantity(request.getQuantity())
+                .packagePrice(request.getPackagePrice())
+                .build();
+
+        product.addPackagingOption(option);
+        Product updated = productRepository.save(product);
+        return mapToResponse(updated);
+    }
+
+    @Transactional
+    public void removePackagingOption(String code, ProductDTO.PackagingOptionRequest request) {
+        Product product = findProductByCode(code);
+
+        PackagingOption option = product.getPackagingOptions().stream()
+                .filter(o -> isMatchingOption(o, request))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Option not found"));
+
+        product.removePackagingOption(option);
+        productRepository.save(product);
+    }
+
     private Product findProductByCode(String code) {
         return productRepository.findById(code)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Product not found with code: " + code));
     }
 
+    private boolean isMatchingOption(PackagingOption o, ProductDTO.PackagingOptionRequest req) {
+        return Objects.equals(o.getQuantity(), req.getQuantity()) &&
+                o.getPackagePrice().compareTo(req.getPackagePrice()) == 0;
+    }
+
     private ProductDTO.ProductResponse mapToResponse(Product product) {
+        List<ProductDTO.PackagingOptionDTO> options = product.getPackagingOptions().stream()
+                .map(option -> ProductDTO.PackagingOptionDTO.builder()
+                        .id(option.getId())
+                        .quantity(option.getQuantity())
+                        .packagePrice(option.getPackagePrice())
+                        .build())
+                .collect(Collectors.toList());
 
         return ProductDTO.ProductResponse.builder()
                 .code(product.getCode())
                 .name(product.getName())
                 .price(product.getPrice())
+                .packagingOptions(options)
                 .build();
     }
 }

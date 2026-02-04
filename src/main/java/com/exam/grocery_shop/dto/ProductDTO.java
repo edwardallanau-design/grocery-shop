@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public class ProductDTO {
 
@@ -46,6 +47,31 @@ public class ProductDTO {
         private String code;
         private String name;
         private BigDecimal price;
+        private List<PackagingOptionDTO> packagingOptions;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PackagingOptionDTO {
+        private Long id;
+        private Integer quantity;
+        private BigDecimal packagePrice;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PackagingOptionRequest {
+        @NotNull(message = "Quantity is required")
+        @Positive(message = "Quantity must be positive")
+        private Integer quantity;
+
+        @NotNull(message = "Package price is required")
+        @Positive(message = "Package price must be positive")
+        private BigDecimal packagePrice;
     }
 
 }
