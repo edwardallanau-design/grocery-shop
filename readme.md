@@ -127,3 +127,29 @@ Content-Type: application/json
     "packagePrice": 13.95
 }
 ```
+
+### Order Calculation
+
+#### Calculate Order
+```http
+POST /api/orders/calculate
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "productCode": "CE",
+      "quantity": 10
+    },
+    {
+      "productCode": "HM",
+      "quantity": 14
+    },
+    {
+      "productCode": "SS",
+      "quantity": 3
+    }
+  ]
+}
+
+```
