@@ -2,6 +2,7 @@ package com.exam.grocery_shop.service;
 
 import com.exam.grocery_shop.dto.OrderDTO;
 import com.exam.grocery_shop.exception.ResourceNotFoundException;
+import com.exam.grocery_shop.mapper.OrderMapper;
 import com.exam.grocery_shop.model.PackagingOption;
 import com.exam.grocery_shop.model.Product;
 import com.exam.grocery_shop.repository.ProductRepository;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
@@ -27,6 +29,12 @@ public class OrderServiceTest {
 
     @Mock
     private ProductRepository productRepository;
+
+    @Spy
+    private PackagingOptimizationService packagingOptimizationService;
+
+    @Spy
+    private OrderMapper orderMapper;
 
     @InjectMocks
     private OrderService orderService;
