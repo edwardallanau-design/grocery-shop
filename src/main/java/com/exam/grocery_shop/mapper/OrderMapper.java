@@ -14,8 +14,8 @@ import java.util.List;
 public final class OrderMapper {
 
     public OrderDTO.OrderLineItem mapToLineItem(Product product,
-                                                 int quantity,
-                                                 PackagingOptimizationService.OptimalPackagingResult packagingResult) {
+                                                int quantity,
+                                                PackagingOptimizationService.OptimalPackagingResult packagingResult) {
         List<OrderDTO.PackageBreakdown> packages = buildPackageBreakdown(packagingResult.packaging());
 
         return OrderDTO.OrderLineItem.builder()

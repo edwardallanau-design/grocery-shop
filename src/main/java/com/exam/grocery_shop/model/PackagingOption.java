@@ -82,8 +82,8 @@ public final class PackagingOption {
         if (this == o) return true;
         if (!(o instanceof PackagingOption that)) return false;
         return Objects.equals(id, that.id) &&
-               Objects.equals(quantity, that.quantity) &&
-               Objects.equals(packagePrice, that.packagePrice);
+                Objects.equals(quantity, that.quantity) &&
+                Objects.equals(packagePrice, that.packagePrice);
     }
 
     @Override

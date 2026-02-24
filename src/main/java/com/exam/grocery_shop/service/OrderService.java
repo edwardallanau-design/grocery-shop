@@ -20,8 +20,8 @@ public class OrderService {
     private final OrderMapper orderMapper;
 
     public OrderService(ProductRepository productRepository,
-                       PackagingOptimizationService packagingOptimizationService,
-                       OrderMapper orderMapper) {
+                        PackagingOptimizationService packagingOptimizationService,
+                        OrderMapper orderMapper) {
         this.productRepository = productRepository;
         this.packagingOptimizationService = packagingOptimizationService;
         this.orderMapper = orderMapper;
