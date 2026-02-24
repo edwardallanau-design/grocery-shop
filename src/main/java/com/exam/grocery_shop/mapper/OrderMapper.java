@@ -11,18 +11,18 @@ import java.util.Collections;
 import java.util.List;
 
 @Component
-public class OrderMapper {
+public final class OrderMapper {
 
     public OrderDTO.OrderLineItem mapToLineItem(Product product,
                                                  int quantity,
                                                  PackagingOptimizationService.OptimalPackagingResult packagingResult) {
-        List<OrderDTO.PackageBreakdown> packages = buildPackageBreakdown(packagingResult.getPackaging());
+        List<OrderDTO.PackageBreakdown> packages = buildPackageBreakdown(packagingResult.packaging());
 
         return OrderDTO.OrderLineItem.builder()
                 .productCode(product.getCode())
                 .productName(product.getName())
                 .totalQuantity(quantity)
-                .totalCost(packagingResult.getTotalCost())
+                .totalCost(packagingResult.totalCost())
                 .packages(packages)
                 .build();
     }
@@ -54,15 +54,15 @@ public class OrderMapper {
 
     private List<OrderDTO.PackageBreakdown> buildPackageBreakdown(List<PackagingOptimizationService.PackageCount> packaging) {
         List<PackagingOptimizationService.PackageCount> sortedPackaging = new ArrayList<>(packaging);
-        sortedPackaging.sort((a, b) -> Integer.compare(b.getItemsPerPackage(), a.getItemsPerPackage()));
+        sortedPackaging.sort((a, b) -> Integer.compare(b.itemsPerPackage(), a.itemsPerPackage()));
 
         List<OrderDTO.PackageBreakdown> breakdowns = new ArrayList<>();
         for (PackagingOptimizationService.PackageCount pc : sortedPackaging) {
-            BigDecimal subtotal = pc.getPricePerPackage().multiply(BigDecimal.valueOf(pc.getCount()));
+            BigDecimal subtotal = pc.pricePerPackage().multiply(BigDecimal.valueOf(pc.count()));
             breakdowns.add(OrderDTO.PackageBreakdown.builder()
-                    .packageQuantity(pc.getCount())
-                    .itemsPerPackage(pc.getItemsPerPackage())
-                    .pricePerPackage(pc.getPricePerPackage())
+                    .packageQuantity(pc.count())
+                    .itemsPerPackage(pc.itemsPerPackage())
+                    .pricePerPackage(pc.pricePerPackage())
                     .subtotal(subtotal)
                     .build());
         }

@@ -5,6 +5,8 @@ import com.exam.grocery_shop.model.PackagingOption;
 import com.exam.grocery_shop.model.Product;
 import com.exam.grocery_shop.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,8 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -26,7 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-public class OrderControllerIntegrationTest {
+@DisplayName("OrderController Integration Tests")
+class OrderControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -41,18 +42,18 @@ public class OrderControllerIntegrationTest {
     void setUp() {
         productRepository.deleteAll();
 
-        Product cheese = Product.builder()
+        var cheese = Product.builder()
                 .code("CE")
                 .name("Cheese")
                 .price(new BigDecimal("5.95"))
                 .build();
 
-        PackagingOption cheese3 = PackagingOption.builder()
+        var cheese3 = PackagingOption.builder()
                 .quantity(3)
                 .packagePrice(new BigDecimal("14.95"))
                 .build();
 
-        PackagingOption cheese5 = PackagingOption.builder()
+        var cheese5 = PackagingOption.builder()
                 .quantity(5)
                 .packagePrice(new BigDecimal("20.95"))
                 .build();
@@ -61,23 +62,23 @@ public class OrderControllerIntegrationTest {
         cheese.addPackagingOption(cheese5);
         productRepository.save(cheese);
 
-        Product ham = Product.builder()
+        var ham = Product.builder()
                 .code("HM")
                 .name("Ham")
                 .price(new BigDecimal("7.95"))
                 .build();
 
-        PackagingOption ham2 = PackagingOption.builder()
+        var ham2 = PackagingOption.builder()
                 .quantity(2)
                 .packagePrice(new BigDecimal("13.95"))
                 .build();
 
-        PackagingOption ham5 = PackagingOption.builder()
+        var ham5 = PackagingOption.builder()
                 .quantity(5)
                 .packagePrice(new BigDecimal("29.95"))
                 .build();
 
-        PackagingOption ham8 = PackagingOption.builder()
+        var ham8 = PackagingOption.builder()
                 .quantity(8)
                 .packagePrice(new BigDecimal("40.95"))
                 .build();
@@ -87,7 +88,7 @@ public class OrderControllerIntegrationTest {
         ham.addPackagingOption(ham8);
         productRepository.save(ham);
 
-        Product soySauce = Product.builder()
+        var soySauce = Product.builder()
                 .code("SS")
                 .name("Soy Sauce")
                 .price(new BigDecimal("11.95"))
@@ -95,74 +96,77 @@ public class OrderControllerIntegrationTest {
         productRepository.save(soySauce);
     }
 
-    @Test
-    void calculateOrder_WithSampleData_ShouldReturnCorrectBreakdown() throws Exception {
-        OrderDTO.OrderRequest request = OrderDTO.OrderRequest.builder()
-                .items(Arrays.asList(
-                        OrderDTO.OrderItem.builder().productCode("CE").quantity(10).build(),
-                        OrderDTO.OrderItem.builder().productCode("HM").quantity(14).build(),
-                        OrderDTO.OrderItem.builder().productCode("SS").quantity(3).build()
-                ))
-                .build();
+    @Nested
+    @DisplayName("Order Calculation Tests")
+    class OrderCalculationTests {
 
-        mockMvc.perform(post("/api/orders/calculate")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.lineItems.length()").value(3))
-                .andExpect(jsonPath("$.totalCost").value(156.60))
+        @Test
+        @DisplayName("Should calculate order correctly with sample data")
+        void calculateOrder_WithSampleData_ShouldReturnCorrectBreakdown() throws Exception {
+            var request = new OrderDTO.OrderRequest(List.of(
+                    new OrderDTO.OrderItem("CE", 10),
+                    new OrderDTO.OrderItem("HM", 14),
+                    new OrderDTO.OrderItem("SS", 3)
+            ));
 
-                .andExpect(jsonPath("$.lineItems[0].productCode").value("CE"))
-                .andExpect(jsonPath("$.lineItems[0].totalQuantity").value(10))
-                .andExpect(jsonPath("$.lineItems[0].totalCost").value(41.90))
-
-                .andExpect(jsonPath("$.lineItems[1].productCode").value("HM"))
-                .andExpect(jsonPath("$.lineItems[1].totalQuantity").value(14))
-                .andExpect(jsonPath("$.lineItems[1].totalCost").value(78.85))
-
-                .andExpect(jsonPath("$.lineItems[2].productCode").value("SS"))
-                .andExpect(jsonPath("$.lineItems[2].totalQuantity").value(3))
-                .andExpect(jsonPath("$.lineItems[2].totalCost").value(35.85));
+            mockMvc.perform(post("/api/orders/calculate")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.lineItems.length()").value(3))
+                    .andExpect(jsonPath("$.totalCost").value(156.60))
+                    .andExpect(jsonPath("$.lineItems[0].productCode").value("CE"))
+                    .andExpect(jsonPath("$.lineItems[0].totalQuantity").value(10))
+                    .andExpect(jsonPath("$.lineItems[0].totalCost").value(41.90))
+                    .andExpect(jsonPath("$.lineItems[1].productCode").value("HM"))
+                    .andExpect(jsonPath("$.lineItems[1].totalQuantity").value(14))
+                    .andExpect(jsonPath("$.lineItems[1].totalCost").value(78.85))
+                    .andExpect(jsonPath("$.lineItems[2].productCode").value("SS"))
+                    .andExpect(jsonPath("$.lineItems[2].totalQuantity").value(3))
+                    .andExpect(jsonPath("$.lineItems[2].totalCost").value(35.85));
+        }
     }
 
-    @Test
-    void calculateOrder_WithNonExistentProduct_ShouldReturnNotFound() throws Exception {
-        OrderDTO.OrderRequest request = OrderDTO.OrderRequest.builder()
-                .items(Collections.singletonList(
-                        OrderDTO.OrderItem.builder().productCode("INVALID").quantity(10).build()
-                ))
-                .build();
+    @Nested
+    @DisplayName("Error Handling Tests")
+    class ErrorHandlingTests {
 
-        mockMvc.perform(post("/api/orders/calculate")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("Not Found"));
-    }
+        @Test
+        @DisplayName("Should return not found when product does not exist")
+        void calculateOrder_WithNonExistentProduct_ShouldReturnNotFound() throws Exception {
+            var request = new OrderDTO.OrderRequest(
+                    List.of(new OrderDTO.OrderItem("INVALID", 10))
+            );
 
-    @Test
-    void calculateOrder_WithInvalidQuantity_ShouldReturnBadRequest() throws Exception {
-        OrderDTO.OrderRequest request = OrderDTO.OrderRequest.builder()
-                .items(Collections.singletonList(
-                        OrderDTO.OrderItem.builder().productCode("CE").quantity(-5).build()
-                ))
-                .build();
+            mockMvc.perform(post("/api/orders/calculate")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.error").value("Not Found"));
+        }
 
-        mockMvc.perform(post("/api/orders/calculate")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
-    }
+        @Test
+        @DisplayName("Should return bad request with invalid quantity")
+        void calculateOrder_WithInvalidQuantity_ShouldReturnBadRequest() throws Exception {
+            var request = new OrderDTO.OrderRequest(
+                    List.of(new OrderDTO.OrderItem("CE", -5))
+            );
 
-    @Test
-    void calculateOrder_WithEmptyItems_ShouldReturnBadRequest() throws Exception {
-        OrderDTO.OrderRequest request = OrderDTO.OrderRequest.builder()
-                .items(List.of())
-                .build();
+            mockMvc.perform(post("/api/orders/calculate")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
 
-        mockMvc.perform(post("/api/orders/calculate")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+        @Test
+        @DisplayName("Should return bad request with empty items")
+        void calculateOrder_WithEmptyItems_ShouldReturnBadRequest() throws Exception {
+            var request = new OrderDTO.OrderRequest(List.of());
+
+            mockMvc.perform(post("/api/orders/calculate")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
     }
 }

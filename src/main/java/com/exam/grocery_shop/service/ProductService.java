@@ -6,21 +6,23 @@ import com.exam.grocery_shop.mapper.ProductMapper;
 import com.exam.grocery_shop.model.PackagingOption;
 import com.exam.grocery_shop.model.Product;
 import com.exam.grocery_shop.repository.ProductRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+
+    public ProductService(ProductRepository productRepository, ProductMapper productMapper) {
+        this.productRepository = productRepository;
+        this.productMapper = productMapper;
+    }
 
     @Transactional
     public ProductDTO.ProductResponse createProduct(ProductDTO.CreateProductRequest request) {
@@ -39,15 +41,15 @@ public class ProductService {
     public List<ProductDTO.ProductResponse> getAllProducts() {
         return productRepository.findAll().stream()
                 .map(productMapper::mapToResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional
     public ProductDTO.ProductResponse updateProduct(String code, ProductDTO.UpdateProductRequest request) {
         Product product = findProductByCode(code);
 
-        Optional.ofNullable(request.getName()).ifPresent(product::setName);
-        Optional.ofNullable(request.getPrice()).ifPresent(product::setPrice);
+        Optional.ofNullable(request.name()).ifPresent(product::setName);
+        Optional.ofNullable(request.price()).ifPresent(product::setPrice);
 
         Product updated = productRepository.save(product);
         return productMapper.mapToResponse(updated);
@@ -64,8 +66,8 @@ public class ProductService {
         Product product = findProductByCode(code);
 
         PackagingOption option = PackagingOption.builder()
-                .quantity(request.getQuantity())
-                .packagePrice(request.getPackagePrice())
+                .quantity(request.quantity())
+                .packagePrice(request.packagePrice())
                 .build();
 
         product.addPackagingOption(option);
@@ -93,7 +95,7 @@ public class ProductService {
     }
 
     private boolean isMatchingOption(PackagingOption o, ProductDTO.PackagingOptionRequest req) {
-        return Objects.equals(o.getQuantity(), req.getQuantity()) &&
-                o.getPackagePrice().compareTo(req.getPackagePrice()) == 0;
+        return Objects.equals(o.getQuantity(), req.quantity()) &&
+                o.getPackagePrice().compareTo(req.packagePrice()) == 0;
     }
 }
