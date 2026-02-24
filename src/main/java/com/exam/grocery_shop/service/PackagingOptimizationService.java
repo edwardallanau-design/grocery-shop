@@ -29,11 +29,11 @@ public class PackagingOptimizationService {
                 .map(opt -> new PackageInfo(opt.getQuantity(), opt.getPackagePrice()))
                 .sorted(Comparator.comparing(PackageInfo::quantity).reversed())
                 .collect(Collectors.collectingAndThen(
-                    Collectors.toList(),
-                    list -> {
-                        list.add(new PackageInfo(1, unitPrice));
-                        return list;
-                    }
+                        Collectors.toList(),
+                        list -> {
+                            list.add(new PackageInfo(1, unitPrice));
+                            return list;
+                        }
                 ));
     }
 
@@ -75,8 +75,8 @@ public class PackagingOptimizationService {
     }
 
     private PackagingResult createResultWithPackage(PackagingResult[] dp,
-                                                     PackageInfo packageInfo,
-                                                     int quantity) {
+                                                    PackageInfo packageInfo,
+                                                    int quantity) {
         PackagingResult previousResult = dp[quantity - packageInfo.quantity()];
 
         int totalPackages = previousResult.totalPackages() + 1;

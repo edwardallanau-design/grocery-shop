@@ -35,9 +35,10 @@ public final class GlobalExceptionHandler {
     }
 
     public record ErrorResponse(
-        LocalDateTime timestamp,
-        int status,
-        String error,
-        String message
-    ) {}
+            LocalDateTime timestamp,
+            int status,
+            String error,
+            String message
+    ) {
+    }
 }
