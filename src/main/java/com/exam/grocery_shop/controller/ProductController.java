@@ -3,7 +3,6 @@ package com.exam.grocery_shop.controller;
 import com.exam.grocery_shop.dto.ProductDTO;
 import com.exam.grocery_shop.service.ProductService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,10 +11,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
-@RequiredArgsConstructor
-public class ProductController {
+public final class ProductController {
 
     private final ProductService productService;
+
+    public ProductController(ProductService productService) {
+        this.productService = productService;
+    }
 
     @PostMapping
     public ResponseEntity<ProductDTO.ProductResponse> createProduct(

@@ -2,58 +2,57 @@ package com.exam.grocery_shop.service;
 
 import com.exam.grocery_shop.dto.ProductDTO;
 import com.exam.grocery_shop.exception.ResourceNotFoundException;
+import com.exam.grocery_shop.mapper.ProductMapper;
 import com.exam.grocery_shop.model.PackagingOption;
 import com.exam.grocery_shop.model.Product;
 import com.exam.grocery_shop.repository.ProductRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductMapper productMapper;
+
+    public ProductService(ProductRepository productRepository, ProductMapper productMapper) {
+        this.productRepository = productRepository;
+        this.productMapper = productMapper;
+    }
 
     @Transactional
     public ProductDTO.ProductResponse createProduct(ProductDTO.CreateProductRequest request) {
-        Product product = Product.builder()
-                .code(request.getCode())
-                .name(request.getName())
-                .price(request.getPrice())
-                .build();
-
+        Product product = productMapper.mapToEntity(request);
         Product saved = productRepository.save(product);
-        return mapToResponse(saved);
+        return productMapper.mapToResponse(saved);
     }
 
     @Transactional(readOnly = true)
     public ProductDTO.ProductResponse getProduct(String code) {
         Product product = findProductByCode(code);
-        return mapToResponse(product);
+        return productMapper.mapToResponse(product);
     }
 
     @Transactional(readOnly = true)
     public List<ProductDTO.ProductResponse> getAllProducts() {
         return productRepository.findAll().stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+                .map(productMapper::mapToResponse)
+                .toList();
     }
 
     @Transactional
     public ProductDTO.ProductResponse updateProduct(String code, ProductDTO.UpdateProductRequest request) {
         Product product = findProductByCode(code);
 
-        Optional.ofNullable(request.getName()).ifPresent(product::setName);
-        Optional.ofNullable(request.getPrice()).ifPresent(product::setPrice);
+        Optional.ofNullable(request.name()).ifPresent(product::setName);
+        Optional.ofNullable(request.price()).ifPresent(product::setPrice);
 
         Product updated = productRepository.save(product);
-        return mapToResponse(updated);
+        return productMapper.mapToResponse(updated);
     }
 
     @Transactional
@@ -67,13 +66,13 @@ public class ProductService {
         Product product = findProductByCode(code);
 
         PackagingOption option = PackagingOption.builder()
-                .quantity(request.getQuantity())
-                .packagePrice(request.getPackagePrice())
+                .quantity(request.quantity())
+                .packagePrice(request.packagePrice())
                 .build();
 
         product.addPackagingOption(option);
         Product updated = productRepository.save(product);
-        return mapToResponse(updated);
+        return productMapper.mapToResponse(updated);
     }
 
     @Transactional
@@ -96,24 +95,7 @@ public class ProductService {
     }
 
     private boolean isMatchingOption(PackagingOption o, ProductDTO.PackagingOptionRequest req) {
-        return Objects.equals(o.getQuantity(), req.getQuantity()) &&
-                o.getPackagePrice().compareTo(req.getPackagePrice()) == 0;
-    }
-
-    private ProductDTO.ProductResponse mapToResponse(Product product) {
-        List<ProductDTO.PackagingOptionDTO> options = product.getPackagingOptions().stream()
-                .map(option -> ProductDTO.PackagingOptionDTO.builder()
-                        .id(option.getId())
-                        .quantity(option.getQuantity())
-                        .packagePrice(option.getPackagePrice())
-                        .build())
-                .collect(Collectors.toList());
-
-        return ProductDTO.ProductResponse.builder()
-                .code(product.getCode())
-                .name(product.getName())
-                .price(product.getPrice())
-                .packagingOptions(options)
-                .build();
+        return Objects.equals(o.getQuantity(), req.quantity()) &&
+                o.getPackagePrice().compareTo(req.packagePrice()) == 0;
     }
 }

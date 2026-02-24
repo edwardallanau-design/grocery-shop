@@ -8,38 +8,36 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public final class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.NOT_FOUND.value())
-                .error("Not Found")
-                .message(ex.getMessage())
-                .build();
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(
+                        LocalDateTime.now(),
+                        HttpStatus.NOT_FOUND.value(),
+                        "Not Found",
+                        ex.getMessage()
+                ));
     }
 
     @ExceptionHandler(InvalidOrderException.class)
     public ResponseEntity<ErrorResponse> handleInvalidOrderException(InvalidOrderException ex) {
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Bad Request")
-                .message(ex.getMessage())
-                .build();
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(
+                        LocalDateTime.now(),
+                        HttpStatus.BAD_REQUEST.value(),
+                        "Bad Request",
+                        ex.getMessage()
+                ));
     }
 
-    @lombok.Data
-    @lombok.Builder
-    @lombok.NoArgsConstructor
-    @lombok.AllArgsConstructor
-    public static class ErrorResponse {
-        private LocalDateTime timestamp;
-        private int status;
-        private String error;
-        private String message;
-    }
+    public record ErrorResponse(
+        LocalDateTime timestamp,
+        int status,
+        String error,
+        String message
+    ) {}
 }
